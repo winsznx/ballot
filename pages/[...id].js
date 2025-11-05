@@ -533,11 +533,17 @@ export default function Poll(props) {
                     if (offset > 10000) break;
                 }
 
-                // Filter transactions by this option's exact dust amount
+                // Filter transactions by this option's exact dust amount and Bitcoin block height range
                 const dustTransactions = allTransactions.filter(tx => {
+                    // Check if transaction is within poll's Bitcoin block height range (burn_block_height)
+                    const txBurnBlockHeight = tx.burn_block_height;
+                    const isWithinBlockRange = txBurnBlockHeight >= pollObject?.startAtBlock && 
+                                               txBurnBlockHeight <= pollObject?.endAtBlock;
+                    
                     return tx.tx_type === 'token_transfer' &&
                         tx.token_transfer &&
-                        tx.token_transfer.recipient_address.toLowerCase() === dustAddress.toLowerCase();
+                        tx.token_transfer.recipient_address.toLowerCase() === dustAddress.toLowerCase() &&
+                        isWithinBlockRange;
                 });
 
                 // Get unique voter addresses for this option
