@@ -215,14 +215,12 @@ export default function ModernInformationPanel({ pollObject, resultsByOption, cu
                         <div className={styles.results_stat}>
                             <span className={styles.results_stat_value}>
                                 {(() => {
-                                    // Calculate total votes from locked + unlocked to ensure consistency
-                                    let regularLockedVotes = 0;
-                                    let regularUnlockedVotes = 0;
+                                    // Calculate total votes from regular results
+                                    let regularVotes = 0;
                                     if (resultsByOption && Object.keys(resultsByOption).length > 0) {
-                                        Object.values(resultsByOption).forEach(result => {
-                                            regularLockedVotes += parseInt(result.lockedStx || 0);
-                                            regularUnlockedVotes += parseInt(result.unlockedStx || 0);
-                                        });
+                                        regularVotes = Object.values(resultsByOption).reduce((sum, result) => sum + parseInt(result.total || 0), 0);
+                                    } else {
+                                        regularVotes = totalVotes >= 0 ? totalVotes : 0;
                                     }
 
                                     // Calculate dust votes from locked + unlocked
@@ -246,10 +244,10 @@ export default function ModernInformationPanel({ pollObject, resultsByOption, cu
                                     }
 
                                     // Sum all locked and unlocked votes
-                                    const totalLocked = regularLockedVotes + dustLockedVotes + btcLockedVotes;
-                                    const totalUnlocked = regularUnlockedVotes + dustUnlockedVotes + btcUnlockedVotes;
+                                    const dustTotalLocked = dustLockedVotes + btcLockedVotes;
+                                    const dustTotalUnlocked = dustUnlockedVotes + btcUnlockedVotes;
 
-                                    return formatNumber(totalLocked + totalUnlocked);
+                                    return formatNumber(regularVotes + dustTotalLocked + dustTotalUnlocked);
                                 })()}
                             </span>
                             <span className={styles.results_stat_label}>Total Votes</span>
