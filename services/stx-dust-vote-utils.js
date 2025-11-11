@@ -77,12 +77,11 @@ export const fetchStxBalanceAtSnapshot = async (address, snapshotHeight) => {
         // Extract locked and unlocked balances
         const lockedBalance = responseObject?.locked ? parseInt(responseObject.locked) : 0;
         const totalBalance = responseObject?.balance ? parseInt(responseObject.balance) : 0;
-        const unlockedBalance = totalBalance - lockedBalance;
 
         return {
             total: Math.floor(totalBalance / 1000000),
             locked: Math.floor(lockedBalance / 1000000),
-            unlocked: Math.floor(unlockedBalance / 1000000)
+            unlocked: ((Math.floor(totalBalance / 1000000)) - (Math.floor(lockedBalance / 1000000)))
         };
     } catch (error) {
         console.warn(`Error fetching STX balance for ${address}:`, error);
@@ -100,7 +99,7 @@ export const fetchStxBalanceAtSnapshot = async (address, snapshotHeight) => {
 export const processDustVotingBalancesWithCache = async (uniqueVoters, pollId, snapshotHeight) => {
     let cachedBalances = null;
     let balancesToCache = {};
-    
+
     // Try to fetch cached balances first
     if (pollId && snapshotHeight) {
         cachedBalances = await fetchCachedStxDustVotingSnapshot(pollId, snapshotHeight);
@@ -110,11 +109,11 @@ export const processDustVotingBalancesWithCache = async (uniqueVoters, pollId, s
     }
 
     const balanceResults = [];
-    
+
     // Fetch balances - use cache or make API calls
     for (const voterAddress of uniqueVoters) {
         let balanceData;
-        
+
         // Check if we have cached data for this address
         if (cachedBalances && cachedBalances[voterAddress]) {
             balanceData = cachedBalances[voterAddress];
@@ -128,7 +127,7 @@ export const processDustVotingBalancesWithCache = async (uniqueVoters, pollId, s
                 total: balanceData.total
             };
         }
-        
+
         balanceResults.push({ voterAddress, balanceData });
     }
 
