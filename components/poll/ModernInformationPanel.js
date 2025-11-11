@@ -215,27 +215,41 @@ export default function ModernInformationPanel({ pollObject, resultsByOption, cu
                         <div className={styles.results_stat}>
                             <span className={styles.results_stat_value}>
                                 {(() => {
-                                    // Calculate total votes from regular results
-                                    let regularVotes = 0;
+                                    // Calculate total votes from locked + unlocked to ensure consistency
+                                    let regularLockedVotes = 0;
+                                    let regularUnlockedVotes = 0;
                                     if (resultsByOption && Object.keys(resultsByOption).length > 0) {
-                                        regularVotes = Object.values(resultsByOption).reduce((sum, result) => sum + parseInt(result.total || 0), 0);
-                                    } else {
-                                        regularVotes = totalVotes >= 0 ? totalVotes : 0;
+                                        Object.values(resultsByOption).forEach(result => {
+                                            regularLockedVotes += parseInt(result.lockedStx || 0);
+                                            regularUnlockedVotes += parseInt(result.unlockedStx || 0);
+                                        });
                                     }
 
-                                    // Calculate dust votes
-                                    let dustVotes = 0;
+                                    // Calculate dust votes from locked + unlocked
+                                    let dustLockedVotes = 0;
+                                    let dustUnlockedVotes = 0;
                                     if (dustVotingResults && Object.keys(dustVotingResults).length > 0) {
-                                        dustVotes = Object.values(dustVotingResults).reduce((sum, result) => sum + (result.totalStx || 0), 0);
+                                        Object.values(dustVotingResults).forEach(result => {
+                                            dustLockedVotes += result.totalLockedStx || 0;
+                                            dustUnlockedVotes += result.totalUnlockedStx || 0;
+                                        });
                                     }
 
-                                    // Calculate BTC votes
-                                    let btcVotes = 0;
+                                    // Calculate BTC votes from locked + unlocked
+                                    let btcLockedVotes = 0;
+                                    let btcUnlockedVotes = 0;
                                     if (btcVotingResults && Object.keys(btcVotingResults).length > 0) {
-                                        btcVotes = Object.values(btcVotingResults).reduce((sum, result) => sum + (result.totalStx || 0), 0);
+                                        Object.values(btcVotingResults).forEach(result => {
+                                            btcLockedVotes += result.totalLockedStx || 0;
+                                            btcUnlockedVotes += result.totalUnlockedStx || 0;
+                                        });
                                     }
 
-                                    return formatNumber(regularVotes + dustVotes + btcVotes);
+                                    // Sum all locked and unlocked votes
+                                    const totalLocked = regularLockedVotes + dustLockedVotes + btcLockedVotes;
+                                    const totalUnlocked = regularUnlockedVotes + dustUnlockedVotes + btcUnlockedVotes;
+
+                                    return formatNumber(totalLocked + totalUnlocked);
                                 })()}
                             </span>
                             <span className={styles.results_stat_label}>Total Votes</span>
@@ -427,13 +441,7 @@ export default function ModernInformationPanel({ pollObject, resultsByOption, cu
                                 // Get BTC results for this option
                                 const btcResult = btcVotingResults && btcVotingResults[option.id] ? btcVotingResults[option.id] : null;
 
-                                // Combine regular, dust, and BTC votes
-                                const regularVotes = parseInt(regularResult.total) || 0;
-                                const dustVotes = dustResult ? dustResult.totalStx || 0 : 0;
-                                const btcVotes = btcResult ? btcResult.totalStx || 0 : 0;
-                                const totalVotes = regularVotes + dustVotes + btcVotes;
-
-                                // Combine locked/unlocked STX
+                                // Combine locked/unlocked STX from all sources
                                 const regularLockedStx = parseInt(regularResult.lockedStx) || 0;
                                 const regularUnlockedStx = parseInt(regularResult.unlockedStx) || 0;
                                 const dustLockedStx = dustResult ? dustResult.totalLockedStx || 0 : 0;
@@ -441,13 +449,20 @@ export default function ModernInformationPanel({ pollObject, resultsByOption, cu
                                 const btcLockedStx = btcResult ? btcResult.totalLockedStx || 0 : 0;
                                 const btcUnlockedStx = btcResult ? btcResult.totalUnlockedStx || 0 : 0;
 
+                                // Calculate total locked and unlocked
+                                const totalLockedStx = regularLockedStx + dustLockedStx + btcLockedStx;
+                                const totalUnlockedStx = regularUnlockedStx + dustUnlockedStx + btcUnlockedStx;
+
+                                // Total votes should be the sum of locked + unlocked to ensure consistency
+                                const totalVotes = totalLockedStx + totalUnlockedStx;
+
                                 return {
                                     id: option.id,
                                     name: option.value,
                                     votes: totalVotes,
                                     percentage: 0, // Will calculate after getting all totals
-                                    lockedStx: regularLockedStx + dustLockedStx + btcLockedStx,
-                                    unlockedStx: regularUnlockedStx + dustUnlockedStx + btcUnlockedStx
+                                    lockedStx: totalLockedStx,
+                                    unlockedStx: totalUnlockedStx
                                 };
                             });
 
