@@ -22,6 +22,12 @@ Yes. There are no charges for creating polls in Ballot.
 6. Who is the team behind Ballot.gg?
 We are developers from Team [BlockSurvey ↗](https://blocksurvey.io/?ref=ballot).
 
+## Poll Results Auditor
+
+This script serves as the base for the ballot counting method used in Ballot.gg. The current implementation of Ballot.gg includes additional contract voting functionality that is not present in this auditor script. This script will be further used in the vote audit process to provide transparent and verifiable poll results.
+
+Script: [`scripts/poll-results-auditor.js`](https://github.com/BlockSurvey/ballot/blob/main/scripts/poll-results-auditor.js)
+
 ## Getting Started
 
 Ballot.gg is built using Next.js and interacts with Stacks Blockchain.
